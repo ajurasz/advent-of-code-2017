@@ -1,0 +1,1 @@
+[![Build](https://travis-ci.org/ajurasz/advent-of-code-2017.svg?branch=master)](https://travis-ci.org/ajurasz/advent-of-code-2017.svg?branch=master)
