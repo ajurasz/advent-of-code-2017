@@ -2,7 +2,7 @@ package com.github.ajurasz
 
 class CyclicList<out T>(private val delegate: List<T>) : AbstractList<T>() {
     override val size: Int get() = delegate.size
-    override fun get(index: Int): T = delegate[if (index >= this.size) index - this.size else index]
+    override fun get(index: Int): T = delegate[index % this.size]
 }
 
 object Day1 {
