@@ -1,41 +1,25 @@
 package com.github.ajurasz
 
-class Acc(val prev: Int, val sum: Int)
-
 object Day1 {
 
-    @JvmStatic
-    fun captchaV1(input: String) = input
-            .map { it - '0' }
-            .circular()
-            .foldIndexed(Acc(0, 0)) { idx, acc, value ->
-                when {
-                    idx == 0 -> Acc(value, 0)
-                    acc.prev == value -> Acc(value, acc.sum + value)
-                    else -> Acc(value, acc.sum)
-                }
-            }
-            .sum
+    private fun convert(input: String) = input.map(Char::toIntValue)
 
-    @JvmStatic
-    fun captchaV2(input: String): Int {
-        val digits = input.map { it - '0' }
-        fun get(digits: List<Int>, idx: Int): Int {
-            val len = digits.size
-            val step = len / 2
-            val newIdx = idx + step
-            return when {
-                newIdx < len -> digits[idx+step]
-                newIdx >= len -> digits[newIdx - len]
-                else -> throw RuntimeException()
-            }
-        }
-
-        return digits.foldIndexed(0) { idx, acc, value ->
-            when {
-                value == get(digits, idx) -> acc + value
+    private fun sum(distance: Int, digits: List<Int>): Int {
+        val referenceList = digits + digits
+        return digits.foldIndexed(0) { index, acc, value ->
+            when (value) {
+                referenceList[distance + index] -> acc + value
                 else -> acc
             }
         }
+    }
+
+    @JvmStatic
+    fun captchaV1(input: String) = sum(1, convert(input))
+
+    @JvmStatic
+    fun captchaV2(input: String): Int {
+        val digits = convert(input)
+        return sum(digits.size / 2, convert(input))
     }
 }
