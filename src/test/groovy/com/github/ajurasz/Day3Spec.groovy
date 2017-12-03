@@ -20,4 +20,15 @@ class Day3Spec extends Specification {
         1024    || 31
         368078  || 371
     }
+
+    def "should resolve part2"() {
+        expect:
+        part2(value) == result
+
+        where:
+        value   || result
+        23      || 25
+        59      || 122
+        368078  || 369601
+    }
 }

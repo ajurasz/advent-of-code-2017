@@ -2,6 +2,7 @@ package com.github.ajurasz
 
 import kotlin.math.abs
 import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.sqrt
 
 object Day3 {
@@ -57,6 +58,71 @@ object Day3 {
         }
     }
 
+    object Part2 {
+
+        interface Action { operator fun not(): Action }
+        object Plus: Action { override operator fun not() = Minus }
+        object Minus: Action { override operator fun not() = Plus }
+
+        fun Array<IntArray>.sumAdjacent(point: Point): Int {
+            return arrayListOf(
+                    point.copy(x = point.x + 1),
+                    Point(point.x + 1, point.y + 1),
+                    point.copy(y = point.y + 1),
+                    Point(point.x - 1, y = point.y + 1),
+                    point.copy(x = point.x - 1),
+                    Point(point.x - 1, point.y - 1),
+                    point.copy(y = point.y - 1),
+                    Point(point.x + 1, point.y - 1)
+            ).fold(0) {acc, p ->
+                if (this[p.x][p.y] != 0) acc + this[p.x][p.y] else acc
+            }
+        }
+
+        private fun init(grid: Array<IntArray>, point: Point) {
+            grid[point.x][point.y] = 1
+            grid[point.x + 1][point.y] = 1
+            grid[point.x + 1][point.y + 1] = 2
+        }
+
+        fun fillUntil(grid: Array<IntArray>, until: Int): Int {
+
+            var step = 2
+            var action: Action = Minus
+
+            var position = Point(floor(grid.size / 2.toDouble()).toInt())
+            init(grid, position)
+            position = position.copy(x = position.x + 1, y = position.y + 1)
+
+            fun set(point: Point, value: Int) {
+                grid[point.x][point.y] = value
+            }
+
+            fun calculate(i: Int): Int = when (action) {
+                Minus -> i - 1
+                Plus -> i + 1
+                else -> throw RuntimeException()
+            }
+
+            while(true) {
+                (1..step).forEach {
+                    position = position.copy(x = calculate(position.x))
+                    val sum = grid.sumAdjacent(position)
+                    if (sum > until) return sum
+                    set(position, sum)
+                }
+                (1..step).forEach {
+                    position = position.copy(y = calculate(position.y))
+                    val sum = grid.sumAdjacent(position)
+                    if (sum > until) return sum
+                    set(position, sum)
+                }
+                step++
+                action = !action
+            }
+        }
+    }
+
     @JvmStatic
     fun part1(value: Int): Int {
         val square = Part1.Square(value)
@@ -64,8 +130,8 @@ object Day3 {
     }
 
     @JvmStatic
-    fun part2(value: Int): Int {
-        val grid = Array(7) {IntArray(7)}
-        return 1
+    fun part2(nextAfter: Int): Int {
+        val grid = Array(15) {IntArray(15)}
+        return Part2.fillUntil(grid, nextAfter)
     }
 }
