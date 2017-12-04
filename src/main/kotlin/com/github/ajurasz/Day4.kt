@@ -6,24 +6,16 @@ object Day4 {
             .sorted()
             .joinToString()
 
-    private fun isValidPassphrase(text: String, transform: (String) -> String) = text
-            .split(" ")
-            .map(transform)
-            .groupingBy { it }
-            .eachCount()
-            .values
-            .filter { it > 1 }
-            .count() == 0
+    private fun isValidPassphrase(s: String, grouping: (String) -> String) =
+            s.split(" ").groupingBy(grouping).eachCount().filterValues { it > 1 }.isEmpty()
+
+    private fun isValidPart1(s: String) = isValidPassphrase(s) { it }
+
+    private fun isValidPart2(s: String) = isValidPassphrase(s) { it.sort() }
 
     @JvmStatic
-    fun part1(input: String) = input
-            .split("\n")
-            .filter{ isValidPassphrase(it) { it } }
-            .count()
+    fun part1(input: String) = input.split("\n").count(this::isValidPart1)
 
     @JvmStatic
-    fun part2(input: String) = input
-            .split("\n")
-            .filter{ isValidPassphrase(it) { it.sort() } }
-            .count()
+    fun part2(input: String) = input.split("\n").count(this::isValidPart2)
 }
