@@ -6,7 +6,7 @@ object Day6 {
 
     private fun redistribution(input: IntArray, repeats: Int = 1): Int {
         tailrec fun go(saw: Set<String>, banks: IntArray, counter: Int = 1, times: Int = 1): Int {
-            val index = banks.indices.maxBy { banks[it] } ?: -1
+            val (index, _) = banks.withIndex().maxBy { it.value }!!
             val value = banks[index]
             banks[index] = 0
             (1..value).forEach {
