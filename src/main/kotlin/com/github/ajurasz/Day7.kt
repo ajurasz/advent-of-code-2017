@@ -20,10 +20,7 @@ object Day7 {
                         matcher?.group(4)?.split(",")?.map { it.trim() } ?: emptyList()
                 )
             }
-            .fold(Pair<MutableSet<String>, MutableSet<String>>(mutableSetOf(), mutableSetOf())) { acc, program ->
-                acc.apply {
-                    first.add(program.name)
-                    program.disc.forEach { second.add(it) }
-                }
+            .fold(Pair<Set<String>, Set<String>>(setOf(), setOf())) { acc, program ->
+                Pair(acc.first.plus(program.name), acc.second.plus(program.disc.map { it }))
             }.run { first - second }.first()
 }
