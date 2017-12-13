@@ -4,122 +4,45 @@ import java.util.regex.Pattern
 
 object Day8 {
 
-    interface Action
-    object Inc : Action
-    object Dec : Action
+    val actions = mapOf<String, (Int, Int) -> Int>(
+            "inc" to { x, y -> x + y},
+            "dec" to { x, y -> x - y}
+    )
 
-    object ActionBuilder {
-        fun create(action: String): Action = when (action.toLowerCase()) {
-            "inc" -> Inc
-            "dec" -> Dec
-            else -> throw IllegalStateException("Unknown $action")
-        }
-    }
-
-    interface Condition
-    object GT : Condition
-    object LT : Condition
-    object GTE : Condition
-    object LTE : Condition
-    object NOT : Condition
-    object EQ : Condition
-
-    object ConditionBuilder {
-        fun create(condition: String): Condition = when (condition.toLowerCase()) {
-            ">" -> GT
-            "<" -> LT
-            ">=" -> GTE
-            "<=" -> LTE
-            "!=" -> NOT
-            "==" -> EQ
-            else -> throw IllegalStateException("Unknown $condition")
-        }
-    }
+    val conditions = mapOf<String, (Int, Int) -> Boolean>(
+            ">" to { x, y -> x > y},
+            ">=" to { x, y -> x >= y},
+            "<" to { x, y -> x < y},
+            "<=" to { x, y -> x <= y},
+            "!=" to { x, y -> x != y},
+            "==" to { x, y -> x == y}
+    )
 
     private val patter = Pattern.compile("""(\w+)? (inc|dec) (-?\d+) if (\w+) (>|<|>=|<=|!=|==) (-?\d+)""")
 
-    private data class Instruction(val variable: String, val action: Action, val value: Int,
-                                   val conditionVariable: String, val condition: Condition, val conditionValue: Int)
-
-    @JvmStatic
-    fun part1(input: String): Int {
-        val registry = mutableMapOf<String, Int>()
-
-        fun execute(instruction: Instruction) {
-            val x = registry.getOrDefault(instruction.conditionVariable, 0)
-            val condition = when (instruction.condition) {
-                GT -> x > instruction.conditionValue
-                LT -> x < instruction.conditionValue
-                GTE -> x >= instruction.conditionValue
-                LTE -> x <= instruction.conditionValue
-                NOT -> x != instruction.conditionValue
-                EQ -> x == instruction.conditionValue
-                else -> false
-            }
-            if (condition) {
-                val v = registry.getOrDefault(instruction.variable, 0)
-                when (instruction.action) {
-                    Inc -> registry.put(instruction.variable, v + instruction.value)
-                    Dec -> registry.put(instruction.variable, v - instruction.value)
-                }
-            }
-        }
-
+    private fun eval(input: String, max: Boolean): Int {
+        val registry = mutableMapOf<String, Int>(
+                "MAX" to 0
+        )
         input.split("\n")
-                .map {
+                .forEach {
                     val matcher = patter.matcher(it)
                     matcher.find()
                     with(matcher) {
-                      Instruction(group(1), ActionBuilder.create(group(2)), group(3).toInt(),
-                              group(4), ConditionBuilder.create(group(5)), group(6).toInt())
+                        if (conditions[group(5)]?.invoke(registry.getOrDefault(group(4), 0), group(6).toInt()) == true) {
+                            val x = actions[group(2)]?.invoke(registry.getOrDefault(group(1), 0), group(3).toInt()) ?: throw IllegalStateException()
+                            registry.put(group(1), x)
+                            registry.put("MAX", registry.computeIfPresent("MAX", { _, oldValue -> if (x > oldValue) x else oldValue }) ?: throw IllegalStateException())
+                        }
                     }
-                }.forEach {
-                    execute(it)
                 }
-
-        return registry.values.max()!!
+        return registry.filterKeys { if(max) it == "MAX" else it != "MAX" }.values.max()!!
     }
 
     @JvmStatic
-    fun part2   (input: String): Int {
-        var max = 0
-        val registry = mutableMapOf<String, Int>()
+    fun part1(input: String) = eval(input, false)
 
-        fun execute(instruction: Instruction) {
-            val x = registry.getOrDefault(instruction.conditionVariable, 0)
-            val condition = when (instruction.condition) {
-                GT -> x > instruction.conditionValue
-                LT -> x < instruction.conditionValue
-                GTE -> x >= instruction.conditionValue
-                LTE -> x <= instruction.conditionValue
-                NOT -> x != instruction.conditionValue
-                EQ -> x == instruction.conditionValue
-                else -> false
-            }
-            if (condition) {
-                val v = registry.getOrDefault(instruction.variable, 0)
-                when (instruction.action) {
-                    Inc -> registry.put(instruction.variable, v + instruction.value)
-                    Dec -> registry.put(instruction.variable, v - instruction.value)
-                }
-            }
-        }
+    @JvmStatic
+    fun part2(input: String) = eval(input, true)
 
-        input.split("\n")
-                .map {
-                    val matcher = patter.matcher(it)
-                    matcher.find()
-                    with(matcher) {
-                        Instruction(group(1), ActionBuilder.create(group(2)), group(3).toInt(),
-                                group(4), ConditionBuilder.create(group(5)), group(6).toInt())
-                    }
-                }.forEach {
-                    execute(it)
-                    if (registry.isNotEmpty() && registry.values.max()!! > max) {
-                        max = registry.values.max()!!
-                    }
-                }
-
-        return max
-    }
 }
